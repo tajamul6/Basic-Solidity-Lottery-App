@@ -28,11 +28,18 @@ module.exports = {
             accounts: [PRIVATE_KEY],
         },
     },
+    gasReporter: {
+        enabled: false,
+        currency: "USD",
+        outputFile: "gas-report.txt",
+        noColors: true,
+        coinmarketcap: COINMARKETCAP_API_KEY,
+        token: "ETH",
+    },
     solidity: "0.8.8",
     namedAccounts: {
-        default: 0,
-    },
-    player: {
-        default: 1,
+        deployer: {
+            default: 0, // here this will by default take the first account as deployer
+        },
     },
 };

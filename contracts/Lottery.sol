@@ -8,10 +8,10 @@ import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/KeeperCompatibleInterface.sol";
 
 /* Errors */
-error Raffle__NotEnoughETHEntered();
-error Raffle__TransferFailed();
-error Raffle__NotOpen();
-error Raffle__UpkeepNotNeeded(
+error Lottery__NotEnoughETHEntered();
+error Lottery__TransferFailed();
+error Lottery__NotOpen();
+error Lottery__UpkeepNotNeeded(
     uint256 currentBalance,
     uint256 numPlayers,
     uint256 raffleState
@@ -48,7 +48,7 @@ contract Lottery is VRFConsumerBaseV2, KeeperCompatibleInterface {
     RaffleState private s_raffleState;
 
     /* Events */
-    event RaffleEnter(address indexed player);
+    event LotteryEnter(address indexed player);
     event RequestedRaffleWinner(uint256 indexed requestId);
     event WinnerPicked(address indexed winner);
 
@@ -70,16 +70,16 @@ contract Lottery is VRFConsumerBaseV2, KeeperCompatibleInterface {
         i_interval = interval;
     }
 
-    function enterRaffle() public payable {
+    function enterLottery() public payable {
         if (msg.value < i_entranceFee) {
-            revert Raffle__NotEnoughETHEntered();
+            revert Lottery__NotEnoughETHEntered();
         }
         if (s_raffleState != RaffleState.OPEN) {
-            revert Raffle__NotOpen();
+            revert Lottery__NotOpen();
         }
         s_players.push(payable(msg.sender));
 
-        emit RaffleEnter(msg.sender);
+        emit LotteryEnter(msg.sender);
     }
 
     /**
@@ -122,7 +122,7 @@ contract Lottery is VRFConsumerBaseV2, KeeperCompatibleInterface {
     ) external override {
         (bool upkeepNeeded, ) = checkUpkeep("");
         if (!upkeepNeeded) {
-            revert Raffle__UpkeepNotNeeded(
+            revert Lottery__UpkeepNotNeeded(
                 address(this).balance,
                 s_players.length,
                 uint256(s_raffleState)
@@ -152,7 +152,7 @@ contract Lottery is VRFConsumerBaseV2, KeeperCompatibleInterface {
         s_lastTimeStamp = block.timestamp;
         (bool success, ) = recentWinner.call{value: address(this).balance}("");
         if (!success) {
-            revert Raffle__TransferFailed();
+            revert Lottery__TransferFailed();
         }
         emit WinnerPicked(recentWinner);
     }
@@ -189,5 +189,9 @@ contract Lottery is VRFConsumerBaseV2, KeeperCompatibleInterface {
 
     function getRequestConfirmations() public pure returns (uint256) {
         return REQUEST_CONFIRMATIONS;
+    }
+
+    function getInterval() public view returns (uint256) {
+        return i_interval;
     }
 }
